@@ -3,7 +3,15 @@
 - les tarifs de references sont'il commun a toute les representations d'un spectacle ? oui
 - Une representation peut ne pas avoir de billet (acces libre) ? oui
 - Un spectacle peut ne pas avoir de tarif ? oui
+- on peut avoir plusieur representation dans la journé ? oui
+- Peut on avoir plusieur represenation en meme temps ? non
+- y a t'il une seul salle ? oui
 
 
-Contrainte suplementaire :
+Contrainte externe:
 - le nombre de billet est la capcité de la salle
+- une compagnie doit dabors acheter un specacle pour fair la representation
+
+Clé primaire:
+- Un specatcle possede un identifiant
+- Une representation : date et heure
