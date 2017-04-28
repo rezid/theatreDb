@@ -1,0 +1,89 @@
+\documentclass[10pt]{report}
+
+\usepackage{fontspec}
+\usepackage[english,frenchb]{babel}
+\usepackage{titlesec}
+\usepackage{titling}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{pgf-umlcd}
+\usepackage{blindtext}
+
+\setmainfont{Minion Pro}
+\newfontfamily\headingfont{Myriad Pro}
+\newfontfamily\codefont{Ubuntu Mono}
+
+\titleformat{\chapter}[display]
+{\bfseries\headingfont\filleft}
+{\scalebox{0.8}[1.2] }
+{0pc}
+{\titlerule \vspace{0.3pc} \Huge\scalebox{0.8}[1.2]}
+\titleformat{\section}[display]
+{\bfseries\headingfont\filright}
+{}
+{0pt}
+{\Large\scalebox{0.9}[1.4]}
+\titlespacing{\chapter}
+{0pc}{0pc}{6pc}[0pc]
+\titlespacing{\section}
+{0pc}{-1pc}{0pc}[0pc]
+
+
+\setlength\parindent{0pt}
+\setlength\parskip{6pt}
+
+\makeatletter
+\newcommand{\globalcolor}[1]{\color{#1}\global\let\default@color\current@color}
+\makeatother
+\definecolor{TextColor}{rgb}{0.15,0.14,0.13}
+\AtBeginDocument{\globalcolor{TextColor}}
+
+\geometry{
+ a4paper, 
+ voffset=0mm,
+ headheight=0mm,
+ headsep=0mm,
+ left=17mm,
+ top=26mm,
+ }
+
+\lstset{language=[11]C++,
+		upquote=true,
+        columns=flexible,
+        keepspaces=true,
+        breaklines,
+        breakindent=0pt,
+        basicstyle=\footnotesize\codefont\bfseries,
+        breaklines=true,
+        keywordstyle=\color{cyan},
+        identifierstyle=\color{blue},
+        commentstyle=\color{gray},
+        stringstyle=\color{red},
+        tabsize=2,
+        xleftmargin=18pt,
+        escapechar={¤},
+        escapebegin=\color{TextColor}\normalfont\codefont,
+        }
+
+\begin{document}
+
+\begin{titlepage}
+   \vspace*{\stretch{1.0}}
+   \begin{center}
+   	  \Large\textbf{Projet BD avancées 2016/2017}\\
+      \Large\textbf{Rapport}\\
+      \large\textit{Abderrazak ZIDANE}
+   \end{center}
+   \vspace*{\stretch{2.0}}
+\end{titlepage}
+
+\chapter{Diagramme E/R}
+\includegraphics[width=15cm]{ER_Diagramme.png}
+\chapter{Diagramme Relationnel}
+\includegraphics[width=15cm]{relationnel_diagramme.png}
+\chapter{Schéma Relationnel}
+\chapter{PostgreSQL programme}
+
+\end{document}
