@@ -1,0 +1,3 @@
+- les operation de mise en scene sont t'il commun a toute les representation d'un spectacle ? oui
+- les prix de mise en scene sont varie t'elle d'une representation a une autre pour un spectacle donné ? oui
+- les tarifs de references sont'il commun a toute les representations d'un spectacle ? oui
