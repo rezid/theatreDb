@@ -1,0 +1,11 @@
+Pour l'entité Spectacle (specialisation total):
+	- l'entité mere participe a plusieur association donc eleminier l'entité mere est a exclure.
+	- les operations sur les spectacles sont genral nombreuse 
+	- Les entité fille participe a des association
+	- Les operations sur les entité fille sont importante aussi
+	==> donc on meintien tout les entités 
+
+
+contrainte externe: 
+- un specacle est sois un spectacle acheté ou bien créé (ou exclusive)
+

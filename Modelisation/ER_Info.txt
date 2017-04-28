@@ -10,7 +10,8 @@
 
 Contrainte externe:
 - le nombre de billet est la capcité de la salle
-- une compagnie doit dabors acheter un specacle pour fair la representation
+- une compagnie doit dabors acheter un specacle pour faire la representation
+- la date d'une operation de mise en scene doit etre inferieur a la date de la representation
 
 Clé primaire:
 - Un specatcle possede un identifiant
