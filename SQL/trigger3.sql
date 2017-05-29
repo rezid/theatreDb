@@ -1,3 +1,6 @@
+DROP TRIGGER IF EXISTS  spectacle ON spectacles_achete;
+DROP FUNCTION IF EXISTS verifie_spectacle_is_nos();
+
 CREATE FUNCTION verifie_spectacle_is_nos() RETURNS trigger AS $$ 
 DECLARE id_s int;
 BEGIN

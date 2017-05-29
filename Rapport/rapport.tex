@@ -111,17 +111,14 @@
 \item \textbf{subventions}(\underline{id\_spectacle, nom\_organisme}, valeur)
 \end{itemize}
 
+\section{Contraintes externes}
 \textbf{spectacles\_achete.id} est une clé primaire, mais aussi une clé externe vers \textbf{spectacles.id}
 
 \textbf{nos\_spectacles.id} est une clé primaire, mais aussi une clé externe vers \textbf{spectacles.id}
 
-2 contraintes  sur spectacle, spectacle\_acheté, nos\_spectacles
-
 \textbf{billets.date\_rep billets.heure\_rep} est une clé externe vers \textbf{representations.date\_rep representation.heure\_rep}
 
 \textbf{billets.type\_tarif billets.valeur\_tarifs} est une clé externe vers \textbf{tarifs.type\_tarif tarifs.valeur}
-
-1 contraintes  sur billets, tarifs, spectacle, representation
 
 \textbf{op\_rep.date\_rep op\_rep.heure\_rep} est une clé externe vers  \textbf{representations.date\_rep representation.heure\_rep}
 
@@ -131,11 +128,11 @@
 
 \textbf{op\_spec.nom\_operation} est une clé externe vers  \textbf{operations.nom}
 
-\textbf{opn\_com1.id\_spectacle} est une clé externe vers \textbf{spectacles.id}
+\textbf{opn\_com1.id\_spectacle} est une clé externe vers \textbf{nos\_spectacles.id}
 
 \textbf{opn\_com1.nom\_compagnie} est une clé externe vers \textbf{compagnies.nom}
 
-\textbf{opn\_com2.id\_spectacle} est une clé externe vers \textbf{spectacles.id}
+\textbf{opn\_com2.id\_spectacle} est une clé externe vers \textbf{nos\_spectacles.id}
 
 \textbf{opn\_com2.nom\_compagnie} est une clé externe vers \textbf{compagnies.nom}
 
@@ -148,37 +145,12 @@
 \textbf{subventions.nom\_organisme} est une clé externe vers \textbf{organismes.nom}
 
 \chapter{PostgreSQL programme}
-\section{Créé la base de donnée}
-\begin{lstlisting}
-CREATE DATABASE "THEATRE"
-WITH 
-OWNER = postgres
-ENCODING = 'UTF8'
-CONNECTION LIMIT = -1;
-\end{lstlisting}
-
 \section{Créé les tables}
 \begin{lstlisting}
-DROP TABLE IF EXISTS spectacles_achete;
-DROP TABLE IF EXISTS nos_spectacles;
-DROP TABLE IF EXISTS billets;
-DROP TABLE IF EXISTS op_rep;
-DROP TABLE IF EXISTS representations;
-DROP TABLE IF EXISTS op_spec;
-DROP TABLE IF EXISTS opn_com1;
-DROP TABLE IF EXISTS opn_com2;
-DROP TABLE IF EXISTS spec_tar;
-DROP TABLE IF EXISTS subventions;
-DROP TABLE IF EXISTS spectacles;
-DROP TABLE IF EXISTS compagnies;
-DROP TABLE IF EXISTS operations;
-DROP TABLE IF EXISTS organismes;
-DROP TABLE IF EXISTS tarifs;
-
 CREATE TABLE spectacles (
 id              int	primary key not null,
 nom         	text not null,           
-capacite        real not null,          
+capacite        int not null,          
 description     text
 );
 
@@ -231,7 +203,7 @@ premon     				text not null,
 date_rep      			date not null,
 heure_rep      			time not null,
 status     				text not null,
-prix_effective     		text not null,
+prix_effective     		real,
 type_tarif	     		text not null,
 valeur_tarif    		real not null,
 PRIMARY KEY (nom, premon, date_rep, heure_rep),
@@ -256,13 +228,13 @@ prix real not null
 
 
 CREATE TABLE opn_com1 (
-id_spectacle int not null REFERENCES spectacles,
+id_spectacle int not null REFERENCES nos_spectacles,
 nom_compagine   text not null REFERENCES compagnies,
 date_rep date not null
 );
 
 CREATE TABLE opn_com2 (
-id_spectacle int not null REFERENCES spectacles,
+id_spectacle int not null REFERENCES nos_spectacles,
 nom_compagine   text not null REFERENCES compagnies,
 date_vente date not null,
 prix_vente real not null
@@ -280,17 +252,19 @@ id_spectacle int not null REFERENCES spectacles,
 nom_organisme   text not null REFERENCES organismes,
 valeur real not null
 );
+
 \end{lstlisting}
 \chapter{Triggers}
 \section{Contrainte externe sur billet}
 les champs type\_tarifs  et valeur\_tarifs présent dans la table billets, doivent être lié a la table spectacle
 \begin{lstlisting}
 CREATE FUNCTION verifie_tarif_du_spectacle() RETURNS trigger AS $$ 
-DECLARE id_s int;
+DECLARE id_s int; o spec_tar%ROWTYPE;
 BEGIN
 SELECT id_spectacle INTO id_s FROM representations WHERE date_rep = NEW.date_rep AND heure_rep = NEW.heure_rep;
-SELECT * FROM spec_tar WHERE id_spectacle = id_s AND type_tarif = NEW.type_tarif AND valeur_tarif = NEW.valeur_tarif;
-IF NOT FOUND THEN RETURN NULL;
+SELECT * INTO o FROM spec_tar WHERE id_spectacle = id_s AND type_tarif = NEW.type_tarif AND valeur_tarif = NEW.valeur_tarif;
+IF NOT FOUND THEN 
+RAISE EXCEPTION 'Tarif not present in spec_tar table';
 END IF;
 RETURN NEW;
 END; 
@@ -306,6 +280,9 @@ EXECUTE PROCEDURE verifie_tarif_du_spectacle();
 \section{Contrainte externe sur nos\_specacles}
 si un spectacle est présent dans nos\_spectacle, il doit pas être présent dans spectacles\_achete
 \begin{lstlisting}
+DROP TRIGGER IF EXISTS  spectacle ON nos_spectacles;
+DROP FUNCTION IF EXISTS verifie_spectacle_is_not_achete();
+
 CREATE FUNCTION verifie_spectacle_is_not_achete() RETURNS trigger AS $$ 
 DECLARE id_s int;
 BEGIN
@@ -316,7 +293,6 @@ RETURN NULL;
 END; 
 $$ LANGUAGE plpgsql;
 
-
 CREATE TRIGGER spectacle
 BEFORE INSERT OR UPDATE ON nos_spectacles
 FOR EACH ROW
@@ -326,6 +302,9 @@ EXECUTE PROCEDURE verifie_spectacle_is_not_achete();
 \section{Contrainte externe sur spectacles\_achete}
 si un spectacle est présent dans spectacles\_achete, il doit pas être présent dans nos\_spectacle
 \begin{lstlisting}
+DROP TRIGGER IF EXISTS  spectacle ON spectacles_achete;
+DROP FUNCTION IF EXISTS verifie_spectacle_is_nos();
+
 CREATE FUNCTION verifie_spectacle_is_nos() RETURNS trigger AS $$ 
 DECLARE id_s int;
 BEGIN
@@ -336,6 +315,7 @@ RETURN NULL;
 END; 
 $$ LANGUAGE plpgsql;
 
+
 CREATE TRIGGER spectacle
 BEFORE INSERT OR UPDATE ON spectacles_achete
 FOR EACH ROW
@@ -343,9 +323,111 @@ EXECUTE PROCEDURE verifie_spectacle_is_nos();
 \end{lstlisting}
 
 \section{Politiques tarifaires}
-si un spectacle est présent dans spectacles\_achete, il doit pas être présent dans nos\_spectacle
-\begin{lstlisting}
+Voici un trigger qui applique une réduction de 20\% les 5 premiers jours de la vente, et qui applique 30\% de réduction les 15 derniers jour avant la représentation si la salle est remplie a moins de 50\%, et une réduction de 50\% si la salle est remplis de moins de 30\%.
+Et qui applique une réduction de 10\% sur les premiers 30\% billets 
 
+\begin{lstlisting}
+DROP TRIGGER IF EXISTS  politique ON billets;
+DROP FUNCTION IF EXISTS  politique();
+DROP FUNCTION IF EXISTS  politique2(billets);
+DROP FUNCTION IF EXISTS  politique3(billets);
+DROP FUNCTION IF EXISTS  current_d();
+
+CREATE FUNCTION current_d() RETURNS date AS $$
+BEGIN
+RETURN CURRENT_DATE;
+END; 
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION politique() RETURNS trigger AS $$ 
+DECLARE d date;
+BEGIN
+IF NEW.prix_effective IS NOT NULL THEN
+RETURN NEW;
+END IF;
+
+SELECT date_vente INTO d FROM representations WHERE date_rep = NEW.date_rep AND heure_rep = NEW.heure_rep;
+
+IF current_d() - d <= 5 THEN
+NEW.prix_effective := NEW.valeur_tarif * 0.8;
+ELSE
+NEW.prix_effective := NEW.valeur_tarif;
+END IF;
+
+RETURN politique2(NEW);
+END; 
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION politique2(n billets) RETURNS billets AS $$ 
+DECLARE d date; co real; id_s real; ca real;
+BEGIN
+
+
+SELECT date_vente INTO d FROM representations WHERE date_rep = n.date_rep AND heure_rep = n.heure_rep;
+
+IF current_d() - d > 15 THEN 
+n.prix_effective := n.prix_effective;
+ELSE
+SELECT count(*) INTO co FROM billets;
+SELECT id_spectacle INTO id_s FROM representations WHERE date_rep = n.date_rep AND heure_rep = n.heure_rep;
+SELECT capacite INTO ca FROM spectacles WHERE id = id_s;
+IF co <= ca * 0.3 THEN
+n.prix_effective := n.prix_effective * 0.5;
+ELSIF co <= ca * 0.5 THEN
+n.prix_effective := n.prix_effective * 0.7;
+ELSE
+n.prix_effective := n.prix_effective;
+END IF;     
+END IF;
+
+RETURN politique3(n);
+END; 
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION politique3(n billets) RETURNS billets AS $$ 
+DECLARE d date; co int; id_s int; ca int;
+BEGIN    
+SELECT count(*) INTO co FROM billets;
+SELECT id_spectacle INTO id_s FROM representations WHERE date_rep = n.date_rep AND heure_rep = n.heure_rep;
+SELECT capacite INTO ca FROM spectacles WHERE id = id_s;
+
+IF co < ca * 0.3 THEN
+n.prix_effective := n.prix_effective * 0.9;
+ELSE
+n.prix_effective := NEW.prix_effective;
+END IF;
+
+RETURN n;
+END; 
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER politique
+BEFORE INSERT OR UPDATE ON billets
+FOR EACH ROW
+EXECUTE PROCEDURE politique();
 \end{lstlisting}
 
+\section{limite de nombre de billets}
+Si le nombre de billet dépasse la capacité de la salle, une exception est déclenche 
+\begin{lstlisting}
+CREATE FUNCTION test_limite() RETURNS trigger AS $$ 
+DECLARE co int; id_s int; ca int;
+BEGIN
+SELECT count(*) INTO co FROM billets;
+SELECT id_spectacle INTO id_s FROM representations WHERE date_rep = n.date_rep AND heure_rep = n.heure_rep;
+SELECT capacite INTO ca FROM spectacles WHERE id = id_s;
+IF co < ca THEN
+RETURN NEW;
+ELSE
+RAISE EXCEPTION 'Nombre de billet depasse la capacité de la salle';
+END IF;
+END; 
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER limite_billets
+BEFORE INSERT OR UPDATE ON billets
+FOR EACH ROW
+EXECUTE PROCEDURE test_limite();
+\end{lstlisting}
 \end{document}
+
